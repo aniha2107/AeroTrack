@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' - AeroTrack'">Page</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar" th:fragment="topbar(admin)">
+    <div class="wrap">
+        <a class="brand" th:href="@{/}">AeroTrack <span style="font-weight:400;opacity:.85">| Lost-Baggage Tracking</span></a>
+        <nav>
+            <a th:href="@{/}">Search</a>
+            <a th:href="@{/about}">About &amp; data sources</a>
+            <a th:href="@{/admin}">Administrator</a>
+            <form th:if="${admin}" th:action="@{/logout}" method="post">
+                <button class="linkbtn" type="submit">Sign out</button>
+            </form>
+        </nav>
+    </div>
+</header>
+
+<div th:fragment="disclaimer" class="notice" role="note">
+    <strong>Please verify.</strong> <span th:text="${disclaimer}"></span>
+    <br><span th:text="${noLiveSync}"></span>
+</div>
+
+<footer th:fragment="footer" class="wrap">
+    <p th:text="${disclaimer}"></p>
+    <p>Student project. Records come only from sources the project is authorized to use; no airline or airport website is scraped. Passenger names and contact details are never stored.</p>
+</footer>
+</body>
+</html>

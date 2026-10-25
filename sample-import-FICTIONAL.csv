@@ -1,0 +1,4 @@
+tag_id,case_reference,status,flight_number,origin,destination,last_airport,last_checkpoint,description,distinctive_marks,recovery_status,external_url
+SAMPLE001,SAMPLE-CASE-01,Reported missing,ZZ100,BOM,DEL,BOM,Transfer belt,"Navy hard-shell case, wheels",Purple tag on handle,Not yet recovered,
+SAMPLE002,,Found,ZZ200,DEL,BLR,BLR,Lost-property counter,,,Located - awaiting collection,
+SAMPLE003,,,,,,,,,,,

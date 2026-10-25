@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('Administrator')}"></head>
+<body>
+<header th:replace="~{fragments :: topbar(true)}"></header>
+
+<main class="wrap">
+    <h1>Administrator dashboard</h1>
+
+    <div class="notice ok" th:if="${message}" th:text="${message}"></div>
+    <div class="notice error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="panel">
+        <p>
+            Data currently held: <strong th:text="${dataMode}"></strong>.
+            Live synchronization: <strong>not implemented</strong>.
+            Authorized API sources registered: <strong th:text="${#lists.size(sourceNames)}">0</strong>.
+        </p>
+        <div class="actions">
+            <a class="btn" th:href="@{/admin/new}">Add record manually</a>
+            <a class="btn secondary" th:href="@{/admin/import}">Import authorized CSV export</a>
+            <form th:action="@{/admin/demo/delete}" method="post"
+                  onsubmit="return confirm('Remove all demonstration records?');">
+                <button class="secondary" type="submit">Remove demonstration records</button>
+            </form>
+        </div>
+        <div class="actions" th:each="n : ${sourceNames}" style="margin-top:10px">
+            <form th:action="@{/admin/sync}" method="post">
+                <input type="hidden" name="name" th:value="${n}">
+                <button class="secondary" type="submit" th:text="'Import now from ' + ${n}"></button>
+            </form>
+            <span class="hint">One-time pull of permitted data; not a live feed.</span>
+        </div>
+    </div>
+
+    <h2>All records (<span th:text="${#lists.size(records)}">0</span>)</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Tag / case</th><th>Status</th><th>Flight</th><th>Last location</th><th>Recovery</th>
+            <th>Verified</th><th>Checked</th><th>Origin of data</th><th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${records}">
+            <td><span th:text="${r.tagId}"></span><br><span class="hint" th:text="${r.caseReference}"></span></td>
+            <td th:text="${r.status}"></td>
+            <td><span th:text="${r.flightNumber}"></span><br><span class="hint" th:text="${r.origin} + ' to ' + ${r.destination}"></span></td>
+            <td><span th:text="${r.lastRecordedAirport}"></span><br><span class="hint" th:text="${r.lastCheckpoint}"></span></td>
+            <td th:text="${r.recoveryStatus}"></td>
+            <td>
+                <span th:if="${#lists.isEmpty(r.verifiedAttributes)}" class="hint">None</span>
+                <span th:each="a : ${r.verifiedAttributes}" class="chip" th:text="${a}"></span>
+            </td>
+            <td th:text="${r.dateLastChecked}"></td>
+            <td th:text="${r.recordType}"></td>
+            <td>
+                <a th:href="@{/admin/{id}/edit(id=${r.id})}">Edit / verify</a>
+                <form th:action="@{/admin/{id}/delete(id=${r.id})}" method="post" style="display:inline"
+                      onsubmit="return confirm('Delete this record?');">
+                    <button class="danger" type="submit" style="padding:2px 8px">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

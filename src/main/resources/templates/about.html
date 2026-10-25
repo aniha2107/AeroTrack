@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('About and data sources')}"></head>
+<body>
+<header th:replace="~{fragments :: topbar(false)}"></header>
+
+<main class="wrap">
+    <h1>About this system and its data</h1>
+    <div th:replace="~{fragments :: disclaimer}"></div>
+
+    <div class="panel">
+        <h2>Where the records come from</h2>
+        <p>Records may only come from sources this project is permitted to use: an approved airline or airport API or partner integration, a permitted data export, or details an administrator enters manually from information they have permission to use. Airport and airline web pages are never scraped, access controls are never bypassed, and passenger information is never republished without authorization.</p>
+        <p>Each record shows its source, the date it was last checked against that source, and whether an administrator has verified individual details. When a source did not confirm something, the page says <em>Not specified</em>; the system does not guess status, location, flight details or ownership.</p>
+    </div>
+
+    <div class="panel">
+        <h2>Current state of this installation</h2>
+        <ul>
+            <li>Live synchronization with an airport or airline system: <strong>not implemented</strong>.</li>
+            <li>Authorized API connection: <strong>none configured</strong> (see the README for why public access is not available).</li>
+            <li th:if="${dataMode == 'DEMO_ONLY'}">The data shown is <strong>demonstration data only</strong>. It is not real baggage.</li>
+            <li th:if="${dataMode == 'MIXED'}">The database holds authorized records and some demonstration records; demonstration records are labelled.</li>
+            <li th:if="${dataMode == 'AUTHORIZED_ONLY'}">The database holds records entered or imported by administrators from permitted sources.</li>
+            <li th:if="${dataMode == 'NO_DATA'}">The database is empty.</li>
+        </ul>
+    </div>
+
+    <div class="panel">
+        <h2>Need current information about a bag?</h2>
+        <p>Contact the baggage service desk of the airline you flew with, or the lost-and-found / baggage services office of the airport, and quote your tag ID or case reference. They hold the authoritative, up-to-date record.</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

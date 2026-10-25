@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('Record')}"></head>
+<body>
+<header th:replace="~{fragments :: topbar(true)}"></header>
+
+<main class="wrap">
+    <h1 th:text="${form.id == null} ? 'Add baggage record' : 'Edit / verify baggage record'">Record</h1>
+
+    <div class="notice demo" th:if="${isDemo}">This is a DEMONSTRATION record. Its content is invented.</div>
+    <div class="notice">
+        Enter only what the source explicitly states or what you have permission to use. Leave a field empty if it is unknown -
+        it will be shown as <em>Not specified</em>. Do not enter passenger names or contact details.
+    </div>
+
+    <form class="filters" method="post" th:action="@{/admin/save}" th:object="${form}">
+        <ul class="errors" th:if="${#fields.hasGlobalErrors()}">
+            <li th:each="e : ${#fields.globalErrors()}" th:text="${e}"></li>
+        </ul>
+        <input type="hidden" th:field="*{id}">
+
+        <fieldset>
+            <legend>Identity</legend>
+            <div class="grid">
+                <label>Baggage tag ID <input type="text" th:field="*{tagId}" maxlength="40"></label>
+                <label>Missing-baggage case reference <input type="text" th:field="*{caseReference}" maxlength="40"></label>
+            </div>
+            <span class="hint">At least one of the two is required.</span>
+        </fieldset>
+
+        <fieldset>
+            <legend>Status and location</legend>
+            <div class="grid">
+                <label>Baggage status
+                    <select th:field="*{status}">
+                        <option value="">Not specified</option>
+                        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"></option>
+                    </select>
+                </label>
+                <label>Last recorded airport (3-letter code) <input type="text" th:field="*{lastRecordedAirport}" maxlength="3"></label>
+                <label>Last recorded checkpoint <input type="text" th:field="*{lastCheckpoint}" maxlength="200"></label>
+                <label>Recovery status
+                    <select th:field="*{recoveryStatus}">
+                        <option value="">Not specified</option>
+                        <option th:each="s : ${recoveries}" th:value="${s}" th:text="${s.label}"></option>
+                    </select>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Flight</legend>
+            <div class="grid">
+                <label>Flight number <input type="text" th:field="*{flightNumber}" maxlength="8"></label>
+                <label>Origin (3-letter code) <input type="text" th:field="*{originAirport}" maxlength="3"></label>
+                <label>Destination (3-letter code) <input type="text" th:field="*{destinationAirport}" maxlength="3"></label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Description</legend>
+            <label>Baggage description <textarea th:field="*{description}" maxlength="1000"></textarea></label>
+            <label>Distinctive marks <textarea th:field="*{distinctiveMarks}" maxlength="1000"></textarea></label>
+            <span class="hint">Use your own words or text you are allowed to reuse. Do not copy protected photographs or descriptions.</span>
+        </fieldset>
+
+        <fieldset>
+            <legend>Source and provenance</legend>
+            <div class="grid">
+                <label>Source (airline/airport and the permission or export used)
+                    <input type="text" th:field="*{source}" maxlength="500">
+                </label>
+                <label th:unless="${isDemo}">How this record was obtained
+                    <select th:field="*{recordOrigin}">
+                        <option th:each="o : ${origins}" th:value="${o}" th:text="${o.label}"></option>
+                        <option th:if="${form.recordOrigin != null and form.recordOrigin.name() == 'AUTHORIZED_API'}"
+                                value="AUTHORIZED_API" selected>Retrieved from an authorized API</option>
+                    </select>
+                </label>
+                <label>Date last checked against the source <input type="date" th:field="*{dateLastChecked}"></label>
+            </div>
+            <label>Official tracking page URL (https://)
+                <input type="text" th:field="*{externalRecordUrl}" maxlength="2000" placeholder="https://...">
+                <span class="hint">Only a link the airline or airport itself publishes. Leave empty if none.</span>
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Administrator verification</legend>
+            <p class="hint">Tick the attributes you have personally confirmed with the airline or airport. Only attributes that have a value can be ticked. Saving with none ticked marks the record Unverified.</p>
+            <div class="chips">
+                <label class="inline" th:each="a : ${attributes}">
+                    <input type="checkbox" th:field="*{verifiedAttributes}" th:value="${a}">
+                    <span th:text="${a.label}"></span>
+                </label>
+            </div>
+        </fieldset>
+
+        <div class="actions">
+            <button type="submit">Save record</button>
+            <a class="btn secondary" th:href="@{/admin}">Cancel</a>
+        </div>
+    </form>
+</main>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

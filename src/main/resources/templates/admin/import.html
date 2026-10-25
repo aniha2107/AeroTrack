@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('Import')}"></head>
+<body>
+<header th:replace="~{fragments :: topbar(true)}"></header>
+
+<main class="wrap">
+    <h1>Import an authorized CSV export</h1>
+
+    <div class="notice error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="notice">
+        Only upload data you are permitted to use (for example an export an airline or airport has given you permission to use).
+        Values are copied exactly as supplied. Empty cells become <em>Not specified</em>, unrecognised values are rejected, and imported
+        records start as <em>Unverified</em>. Columns that are not in the list below (such as passenger names) are ignored and never stored.
+    </div>
+
+    <div class="panel" th:if="${result != null}">
+        <h2>Import result</h2>
+        <p>
+            Imported: <strong th:text="${result.imported}">0</strong> &nbsp;
+            Skipped duplicates: <strong th:text="${result.skippedDuplicates}">0</strong> &nbsp;
+            Rows with problems: <strong th:text="${#lists.size(result.errors)}">0</strong>
+        </p>
+        <p th:if="${!#lists.isEmpty(result.ignoredColumns)}">
+            Ignored columns: <span th:text="${#strings.listJoin(result.ignoredColumns, ', ')}"></span>
+        </p>
+        <ul class="errors" th:if="${!#lists.isEmpty(result.errors)}">
+            <li th:each="e : ${result.errors}" th:text="${e}"></li>
+        </ul>
+        <a class="btn" th:href="@{/admin}">Back to dashboard</a>
+    </div>
+
+    <form class="filters" method="post" th:action="@{/admin/import}" enctype="multipart/form-data">
+        <p>Expected header columns (all optional except one of <code>tag_id</code> / <code>case_reference</code>):<br>
+            <code th:text="${columns}"></code></p>
+        <p class="hint">status: Registered, In transit, Reported missing, Found, Delivered. recovery_status: Not yet recovered, Located - awaiting collection, Returned to passenger. Airports are 3-letter IATA codes. external_url must be an https link.</p>
+        <div class="grid">
+            <label>CSV file (max 1 MB) <input type="file" name="file" accept=".csv,text/csv" required></label>
+            <label>Source (who provided it and under what permission)
+                <input type="text" name="source" maxlength="500" required>
+            </label>
+            <label>Date the export was last checked/obtained
+                <input type="date" name="checkedOn" th:value="${today}" required>
+            </label>
+        </div>
+        <p><label class="inline"><input type="checkbox" name="authorized" value="true">
+            I confirm I am permitted to use and store this data.</label></p>
+        <div class="actions">
+            <button type="submit">Import</button>
+            <a class="btn secondary" th:href="@{/admin}">Cancel</a>
+        </div>
+    </form>
+</main>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

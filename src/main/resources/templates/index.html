@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments :: head('Search baggage records')}"></head>
+<body>
+<header th:replace="~{fragments :: topbar(false)}"></header>
+
+<main class="wrap">
+    <h1>Search baggage records</h1>
+    <p class="sub">Choose any filters. Leave a filter empty to ignore it. A record only matches a filter if that detail is actually recorded.</p>
+
+    <div th:replace="~{fragments :: disclaimer}"></div>
+
+    <div class="notice demo" th:if="${dataMode == 'DEMO_ONLY'}" th:text="${demoBanner}"></div>
+    <div class="notice demo" th:if="${dataMode == 'MIXED'}">
+        The database contains both authorized records and DEMONSTRATION records. Demonstration records are labelled on each card and are not real baggage.
+    </div>
+    <div class="notice" th:if="${dataMode == 'NO_DATA'}">
+        There are no baggage records yet. An administrator can add records from permitted information or import an authorized export.
+    </div>
+
+    <form class="filters" method="get" th:action="@{/}" th:object="${criteria}">
+        <fieldset>
+            <legend>Identify the bag</legend>
+            <div class="grid">
+                <label>Baggage tag ID or case reference
+                    <input type="text" th:field="*{idOrCase}" maxlength="40" placeholder="e.g. a tag ID or file reference">
+                </label>
+                <label>Description or distinctive marks contain
+                    <input type="text" th:field="*{keywords}" maxlength="100" placeholder="e.g. black suitcase ribbon">
+                    <span class="hint">All words must appear.</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Airport</legend>
+            <div class="grid">
+                <label>Airport
+                    <select th:field="*{airport}">
+                        <option value="">Any airport</option>
+                        <option th:each="a : ${airports}" th:value="${a}" th:text="${a}"></option>
+                    </select>
+                </label>
+                <label>Airport is the
+                    <select th:field="*{airportRole}">
+                        <option th:each="r : ${airportRoles}" th:value="${r}" th:text="${r.label}"></option>
+                    </select>
+                </label>
+                <label>Last recorded checkpoint contains
+                    <input type="text" th:field="*{checkpoint}" maxlength="100" placeholder="e.g. baggage claim">
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Flight</legend>
+            <div class="grid">
+                <label>Flight number
+                    <input type="text" th:field="*{flightNumber}" maxlength="8" placeholder="e.g. AB1234">
+                </label>
+                <label>Flight origin
+                    <select th:field="*{origin}">
+                        <option value="">Any</option>
+                        <option th:each="a : ${airports}" th:value="${a}" th:text="${a}"></option>
+                    </select>
+                </label>
+                <label>Flight destination
+                    <select th:field="*{destination}">
+                        <option value="">Any</option>
+                        <option th:each="a : ${airports}" th:value="${a}" th:text="${a}"></option>
+                    </select>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Status</legend>
+            <div class="grid">
+                <label>Baggage status
+                    <select th:field="*{status}">
+                        <option value="">Any status</option>
+                        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"></option>
+                    </select>
+                </label>
+                <label>Recovery status
+                    <select th:field="*{recovery}">
+                        <option value="">Any</option>
+                        <option th:each="s : ${recoveries}" th:value="${s}" th:text="${s.label}"></option>
+                    </select>
+                </label>
+                <label>Verification status
+                    <select th:field="*{verification}">
+                        <option value="">Any</option>
+                        <option th:each="s : ${verifications}" th:value="${s}" th:text="${s.shortLabel}"></option>
+                    </select>
+                </label>
+            </div>
+        </fieldset>
+
+        <div class="actions">
+            <button type="submit">Search</button>
+            <a class="btn secondary" th:href="@{/}">Clear filters</a>
+        </div>
+    </form>
+
+    <p class="count" aria-live="polite">
+        <span th:text="${#lists.size(results)}">0</span>
+        <span th:text="${#lists.size(results) == 1} ? 'record matches' : 'records match'">records match</span>
+    </p>
+
+    <p th:if="${#lists.isEmpty(results)}">No records match every selected filter. Records with an unknown ("Not specified") value for a filtered detail are never included.</p>
+
+    <article class="card" th:each="v : ${results}" th:classappend="${v.demo} ? 'demo'">
+        <span class="ribbon" th:if="${v.demo}" th:text="${demoLabel}"></span>
+        <h3>
+            Tag ID: <span th:text="${v.tagId}" th:classappend="${v.tagId == notSpecified} ? 'ns'"></span>
+            &nbsp;|&nbsp; Case reference: <span th:text="${v.caseReference}" th:classappend="${v.caseReference == notSpecified} ? 'ns'"></span>
+        </h3>
+        <dl>
+            <dt>Baggage status</dt>
+            <dd th:text="${v.status}" th:classappend="${v.status == notSpecified} ? 'ns'"></dd>
+
+            <dt>Associated flight</dt>
+            <dd>
+                <span th:text="${v.flightNumber}" th:classappend="${v.flightNumber == notSpecified} ? 'ns'"></span>
+                &nbsp;(from <span th:text="${v.origin}" th:classappend="${v.origin == notSpecified} ? 'ns'"></span>
+                to <span th:text="${v.destination}" th:classappend="${v.destination == notSpecified} ? 'ns'"></span>)
+            </dd>
+
+            <dt>Last recorded location</dt>
+            <dd>
+                Airport: <span th:text="${v.lastRecordedAirport}" th:classappend="${v.lastRecordedAirport == notSpecified} ? 'ns'"></span>
+                &nbsp;|&nbsp; Checkpoint: <span th:text="${v.lastCheckpoint}" th:classappend="${v.lastCheckpoint == notSpecified} ? 'ns'"></span>
+            </dd>
+
+            <dt>Description</dt>
+            <dd th:text="${v.description}" th:classappend="${v.description == notSpecified} ? 'ns'"></dd>
+
+            <dt>Distinctive marks</dt>
+            <dd th:text="${v.distinctiveMarks}" th:classappend="${v.distinctiveMarks == notSpecified} ? 'ns'"></dd>
+
+            <dt>Recovery status</dt>
+            <dd th:text="${v.recoveryStatus}" th:classappend="${v.recoveryStatus == notSpecified} ? 'ns'"></dd>
+
+            <dt>Verification</dt>
+            <dd th:text="${v.verificationStatus}"></dd>
+
+            <dt>Verified attributes</dt>
+            <dd>
+                <span class="chips" th:if="${!#lists.isEmpty(v.verifiedAttributes)}">
+                    <span class="chip" th:each="a : ${v.verifiedAttributes}" th:text="${a}"></span>
+                </span>
+                <span class="chip none" th:if="${#lists.isEmpty(v.verifiedAttributes)}">None verified</span>
+            </dd>
+
+            <dt>Last checked</dt>
+            <dd th:text="${v.dateLastChecked}" th:classappend="${v.dateLastChecked == notSpecified} ? 'ns'"></dd>
+
+            <dt>Source</dt>
+            <dd><span th:text="${v.source}"></span> <span class="hint">(<span th:text="${v.recordType}"></span>)</span></dd>
+        </dl>
+
+        <div class="linkrow" th:if="${v.officialTrackingUrl != null}">
+            <a th:href="${v.officialTrackingUrl}" target="_blank" rel="noopener noreferrer nofollow">
+                Official tracking page (<span th:text="${v.officialTrackingHost}"></span>)
+            </a>
+            <span class="hint"> - opens the source's own site; check current details there.</span>
+        </div>
+        <div class="linkrow" th:if="${v.officialTrackingUrl == null}">
+            <span class="ns">Official tracking link: Not specified.</span>
+            <span class="hint"> Ask the relevant airline or airport baggage service for current details.</span>
+        </div>
+    </article>
+</main>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>
