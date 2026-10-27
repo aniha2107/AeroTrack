@@ -114,12 +114,13 @@ public class AdminController {
     public String doImport(@RequestParam("file") MultipartFile file,
                            @RequestParam("source") String source,
                            @RequestParam(value = "authorized", defaultValue = "false") boolean authorized,
+                           @RequestParam(value = "synthetic", defaultValue = "false") boolean synthetic,
                            @RequestParam("checkedOn") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkedOn,
                            Model model) throws IOException {
         model.addAttribute("columns", String.join(", ", BaggageImportService.CSV_COLUMNS));
         model.addAttribute("today", LocalDate.now());
-        if (!authorized) {
-            model.addAttribute("error", "Tick the box to confirm you are permitted to use this data.");
+        if (!authorized && !synthetic) {
+            model.addAttribute("error", "Tick one box: either this is synthetic test data, or you are permitted to use this data.");
             return "admin/import";
         }
         if (file.isEmpty()) {
@@ -131,7 +132,8 @@ public class AdminController {
             return "admin/import";
         }
         String text = new String(file.getBytes(), StandardCharsets.UTF_8);
-        model.addAttribute("result", importer.importCsv(text, source, checkedOn));
+        model.addAttribute("result", importer.importCsv(text, source, checkedOn,
+                synthetic ? RecordOrigin.DEMO : RecordOrigin.AUTHORIZED_EXPORT));
         return "admin/import";
     }
 
