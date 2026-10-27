@@ -42,6 +42,12 @@ public class BaggageImportService {
 
     @Transactional
     public ImportResult importCsv(String csvText, String source, LocalDate checkedOn) {
+        return importCsv(csvText, source, checkedOn, RecordOrigin.AUTHORIZED_EXPORT);
+    }
+
+    /** Same as above, but lets the caller say what kind of data this is (e.g. DEMO for synthetic test data). */
+    @Transactional
+    public ImportResult importCsv(String csvText, String source, LocalDate checkedOn, RecordOrigin origin) {
         List<List<String>> rows = CsvParser.parse(csvText);
         if (rows.isEmpty()) {
             return new ImportResult(0, 0, List.of("The file is empty."), List.of());
@@ -72,7 +78,7 @@ public class BaggageImportService {
                     cell(row, col, "description"), cell(row, col, "distinctive_marks"),
                     cell(row, col, "recovery_status"), cell(row, col, "external_url")));
         }
-        return importRecords(records, RecordOrigin.AUTHORIZED_EXPORT, source, checkedOn, ignored);
+        return importRecords(records, origin, source, checkedOn, ignored);
     }
 
     @Transactional
