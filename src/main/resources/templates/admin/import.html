@@ -44,8 +44,10 @@
                 <input type="date" name="checkedOn" th:value="${today}" required>
             </label>
         </div>
+        <p><label class="inline"><input type="checkbox" name="synthetic" value="true">
+            This file is synthetic (made-up) test data. Records will be labelled as demonstration data, not real baggage.</label></p>
         <p><label class="inline"><input type="checkbox" name="authorized" value="true">
-            I confirm I am permitted to use and store this data.</label></p>
+            This is real data and I confirm I am permitted to use and store it.</label></p>
         <div class="actions">
             <button type="submit">Import</button>
             <a class="btn secondary" th:href="@{/admin}">Cancel</a>
