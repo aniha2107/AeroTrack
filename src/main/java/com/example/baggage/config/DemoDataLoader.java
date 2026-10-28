@@ -30,7 +30,7 @@ public class DemoDataLoader implements ApplicationRunner {
 
     private static final String SOURCE = "Demonstration data written for this project - not a live airport or airline record";
 
-    private static final String CSV_RESOURCE = "/data/aerotrack_100_luggage.csv";
+    private static final String CSV_RESOURCE = "/aerotrack_100_luggage.csv";
     private static final String CSV_SOURCE = "AeroTrack synthetic demonstration dataset (100 made-up records) - not real baggage";
 
     private final BaggageRepository repo;
