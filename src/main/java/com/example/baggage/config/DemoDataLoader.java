@@ -7,11 +7,14 @@ import com.example.baggage.model.RecoveryStatus;
 import com.example.baggage.model.VerifiableAttribute;
 import com.example.baggage.model.VerificationStatus;
 import com.example.baggage.repo.BaggageRepository;
+import com.example.baggage.service.BaggageImportService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -27,11 +30,17 @@ public class DemoDataLoader implements ApplicationRunner {
 
     private static final String SOURCE = "Demonstration data written for this project - not a live airport or airline record";
 
+    private static final String CSV_RESOURCE = "/data/aerotrack_100_luggage.csv";
+    private static final String CSV_SOURCE = "AeroTrack synthetic demonstration dataset (100 made-up records) - not real baggage";
+
     private final BaggageRepository repo;
+    private final BaggageImportService importer;
     private final boolean enabled;
 
-    public DemoDataLoader(BaggageRepository repo, @Value("${baggage.demo-data.enabled:true}") boolean enabled) {
+    public DemoDataLoader(BaggageRepository repo, BaggageImportService importer,
+                          @Value("${baggage.demo-data.enabled:true}") boolean enabled) {
         this.repo = repo;
+        this.importer = importer;
         this.enabled = enabled;
     }
 
@@ -40,7 +49,19 @@ public class DemoDataLoader implements ApplicationRunner {
         if (!enabled || repo.count() > 0) {
             return;
         }
-        // tag, case, status, flight, from, to, lastAirport, checkpoint, description, marks, recovery
+        // Preferred: load the bundled synthetic dataset (100 records) every time the database is empty.
+        try (InputStream in = DemoDataLoader.class.getResourceAsStream(CSV_RESOURCE)) {
+            if (in != null) {
+                String csv = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                importer.importCsv(csv, CSV_SOURCE, LocalDate.now(), RecordOrigin.DEMO);
+                if (repo.count() > 0) {
+                    return;
+                }
+            }
+        } catch (java.io.IOException ex) {
+            // fall through to the small built-in sample below
+        }
+        // Fallback sample. tag, case, status, flight, from, to, lastAirport, checkpoint, description, marks, recovery
         save("DEMO-0001", "DEMO-CASE-1001", BaggageStatus.REPORTED_MISSING, "DM101", "BOM", "LHR", "BOM",
                 "Transfer belt", "Large black hard-shell suitcase", "Blue ribbon on handle", RecoveryStatus.NOT_RECOVERED, false);
         save("DEMO-0002", "DEMO-CASE-1002", BaggageStatus.FOUND, "DM202", "DEL", "DXB", "DXB",
